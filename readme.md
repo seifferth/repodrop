@@ -10,6 +10,14 @@ atom feeds.
 
 - git
 
+## Installing
+
+`repodrop.py` is a standalone script that only relies on the python3
+standard library. Copying it into some folder included in `PATH`
+and marking it as executable should suffice for installing. Renaming
+the executable to `repodrop` (i. e. removing the `.py`-Extension) is
+encouraged.
+
 ## Configuration
 
 The configuration file is located at `~/.config/repodrop/config.yaml`. It
