@@ -8,7 +8,7 @@ atom feeds.
 
 ## Dependencies
 
-- [GitPython](https://gitpython.readthedocs.io)
+- git
 
 ## Configuration
 

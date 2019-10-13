@@ -2,9 +2,9 @@
 
 import os
 import yaml
-import git
 import socket
 import time
+import subprocess
 
 config_file = os.path.join(
     os.environ['HOME'],
@@ -17,45 +17,76 @@ def read_config():
     with open(config_file, "r") as f:
         return yaml.safe_load(f)
 
+def contains_updates(fetch_output: str) -> bool:
+    for line in fetch_output.splitlines():
+        if line.startswith(" = [up to date]") \
+        or line.startswith("Fetching") \
+        or line.startswith("From"):
+            pass
+        else:
+            return True
+    return False
+
 def fetch_updates(path):
-    repo = git.Repo(path)
-    reponame = path.split(os.sep)[-1]
-    updates = list()
-    for remote in repo.remotes:
-        for fetch in remote.fetch():
-            if fetch.note:
-                updates.append(fetch.note)
-    if not updates:     # The list holding updates remained empty
-        return None
-    else:
+    """
+    Get remote updates for a git repository. This does not update remotes
+    as a precaution, since the repodrop might still fail at this stage.
+    """
+    oldpwd = os.getcwd()
+    os.chdir(path)
+    reponame = path.strip(os.sep).split(os.sep)[-1]
+    updates = subprocess.run(
+        ["git", "fetch", "--all", "--dry-run"],
+        check=True,
+        capture_output=True,
+        text=True
+    ).stderr
+    os.chdir(oldpwd)
+    if updates:     # String is not empty
         return { "name": reponame,
                  "path": path,
                  "updates": updates }
+    else:
+        return None
+
+def update_remotes(path):
+    """
+    Do a real update to the remotes in a particular repo. This should
+    be run after the notification has been delivered successfully.
+    """
+    oldpwd = os.getcwd()
+    os.chdir(path)
+    subprocess.run(
+        ["git", "fetch", "--all"],
+        check=True,
+        capture_output=True,
+        text=True
+    )
+    os.chdir(oldpwd)
 
 def drop_updates(update_dict, maildir_path):
     now = time.localtime()
+    seconds = time.strftime("%s", now)
+    rfc_time = time.strftime("%a, %d %b %Y %H:%M:%S %z", now)
     filename = "{}_{}.{}".format(
-        time.strftime("%s", now),
+        seconds,
         update_dict["name"],
         socket.gethostname()
     )
     tmp_mailfile = os.path.join(maildir_path, "tmp", filename)
     new_mailfile = os.path.join(maildir_path, "new", filename)
-    with open(tmp_mailfile) as f:
+    with open(tmp_mailfile, "w") as f:
         f.writelines([
-            "Date: {}".format(time.strftime("%a, %d %b %Y %H:%M:%S %z"), now),
-            "From: repodrop@{}".format(socket.gethostname()),
-            "Subject: [{}] {} remote updates".format(
-                update_dict["name"],
-                len(update_dict["updates"])
-            ),
-            ""
+            "Date: {}\n".format(rfc_time),
+            "From: RepoDrop@{}\n".format(socket.gethostname()),
+            "Subject: Remote updates in {}\n".format(update_dict["name"]),
+            "\n"
         ])
-    for note in update_dict["updates"]:
-        f.writeline(note)
-    f.writeline()
-    f.writeline("Repo path: {}".format(update_dict["path"]))
+        f.write(update_dict["updates"])
+        f.write("\n")
+        f.write("Repo path: {}\n".format(update_dict["path"]))
     os.rename(tmp_mailfile, new_mailfile)   # Maildir convention
+    update_remotes(update_dict["path"])
 
 def ensure_maildir(path):
     for subdir in ["cur", "new", "tmp"]:
