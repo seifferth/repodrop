@@ -17,16 +17,6 @@ def read_config():
     with open(config_file, "r") as f:
         return yaml.safe_load(f)
 
-def contains_updates(fetch_output: str) -> bool:
-    for line in fetch_output.splitlines():
-        if line.startswith(" = [up to date]") \
-        or line.startswith("Fetching") \
-        or line.startswith("From"):
-            pass
-        else:
-            return True
-    return False
-
 def fetch_updates(path):
     """
     Get remote updates for a git repository. This does not update remotes
