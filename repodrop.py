@@ -71,7 +71,7 @@ def drop_updates(update_dict, maildir_path):
         f.writelines([
             "Date: {}\n".format(rfc_time),
             "From: RepoDrop@{}\n".format(socket.gethostname()),
-            "Subject: Remote updates in {}\n".format(update_dict["name"]),
+            "Subject: Remote updates for {}\n".format(update_dict["name"]),
             "\n"
         ])
         f.write(update_dict["updates"])
