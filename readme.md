@@ -20,8 +20,8 @@ encouraged.
 
 ## Configuration
 
-The configuration file is located at `~/.config/repodrop/config.yaml`. It
-contains two entries: The mailfolder notifications should be delivered
+The configuration file is located at `~/.config/repodrop/config.yaml`.
+It contains two entries: The maildir notifications should be delivered
 to and a list of paths to local git repositories that should be checked
 for remote updates. An example configuration file could look like this:
 
