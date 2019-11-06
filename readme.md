@@ -33,3 +33,13 @@ git-repositories:
   - /full/path/to/second/repo
   - /full/path/to/third/repo
 ```
+
+RepoDrop uses multithreading to process multiple git repositories at
+once with the aim of reducing latency by querying multiple remotes
+at once. By default, RepoDrop uses up to four threads. It is possible
+to increase or decrease the maximum number of threads by specifying
+`max-threads` in the configuration file as such:
+
+```yaml
+max-threads: 4
+```

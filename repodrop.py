@@ -7,6 +7,7 @@ import yaml
 import socket
 import time
 import subprocess
+import multiprocessing
 
 config_file = os.path.join(
     os.environ['HOME'],
@@ -88,7 +89,11 @@ def ensure_maildir(path):
 if __name__ == "__main__":
     config = read_config()
     ensure_maildir(config["maildir"])
-    updates = map(fetch_updates, config["git-repositories"])
+    if "max-threads" not in config.keys():
+        config["max-threads"] = 4
+    threads = min(config["max-threads"], len(config["git-repositories"]))
+    pool = multiprocessing.Pool(threads)
+    updates = pool.map(fetch_updates, config["git-repositories"])
     updates = filter(lambda x: x != None, updates)
     for update_dict in updates:
         drop_updates(update_dict, config["maildir"])
