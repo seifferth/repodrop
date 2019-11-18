@@ -92,8 +92,8 @@ if __name__ == "__main__":
     if "max-threads" not in config.keys():
         config["max-threads"] = 4
     threads = min(config["max-threads"], len(config["git-repositories"]))
-    pool = multiprocessing.Pool(threads)
-    updates = pool.map(fetch_updates, config["git-repositories"])
+    with multiprocessing.Pool(threads) as pool:
+        updates = pool.map(fetch_updates, config["git-repositories"])
     updates = filter(lambda x: x != None, updates)
     for update_dict in updates:
         drop_updates(update_dict, config["maildir"])
