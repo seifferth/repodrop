@@ -88,6 +88,8 @@ def ensure_maildir(path):
 
 if __name__ == "__main__":
     config = read_config()
+    if config.get("git-repositories") == None:
+        exit(0)     # Skip everything if no repositories are specified
     ensure_maildir(config["maildir"])
     if "max-threads" not in config.keys():
         config["max-threads"] = 4
