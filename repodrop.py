@@ -25,16 +25,13 @@ def fetch_updates(path):
     Get remote updates for a git repository. This does not update remotes
     as a precaution, since the repodrop might still fail at this stage.
     """
-    oldpwd = os.getcwd()
-    os.chdir(path)
     reponame = path.strip(os.sep).split(os.sep)[-1]
     updates = subprocess.run(
-        ["git", "fetch", "--all", "--dry-run"],
+        ["git", "-C", path, "fetch", "--all", "--dry-run"],
         check=True,
         capture_output=True,
         text=True
     ).stderr
-    os.chdir(oldpwd)
     if updates:     # String is not empty
         return { "name": reponame,
                  "path": path,
@@ -47,15 +44,12 @@ def update_remotes(path):
     Do a real update to the remotes in a particular repo. This should
     be run after the notification has been delivered successfully.
     """
-    oldpwd = os.getcwd()
-    os.chdir(path)
     subprocess.run(
-        ["git", "fetch", "--all"],
+        ["git", "-C", path, "fetch", "--all"],
         check=True,
         capture_output=True,
         text=True
     )
-    os.chdir(oldpwd)
 
 def drop_updates(update_dict, maildir_path):
     now = time.localtime()
