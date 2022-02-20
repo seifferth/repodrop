@@ -2,6 +2,7 @@
 #
 # SPDX-License-Identifier: GPL-3.0+
 
+import sys
 import os
 import yaml
 import socket
@@ -80,7 +81,17 @@ def ensure_maildir(path):
         subdir = os.path.join(path, subdir)
         os.makedirs(subdir, exist_ok=True)
 
+_cli_help = f"""
+Usage: repodrop [--help]
+
+This command takes no command line arguments. All configuration is read
+from a configuration file at '{config_file}'.
+""".lstrip()
+
 if __name__ == "__main__":
+    if '-h' in sys.argv[1:] or '--help' in sys.argv[1:]:
+        print(_cli_help)
+        exit(0)
     config = read_config()
     if config.get("git-repositories") == None:
         exit(0)     # Skip everything if no repositories are specified
